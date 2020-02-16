@@ -1,0 +1,41 @@
+version: '3.7'
+
+networks:
+  docker-workshop-net:
+    driver: bridge
+
+services:
+  base:
+    build:
+      context: base/.
+  redis:
+    build:
+      context: redis/.
+      args:
+        FROM_REPO: docker-workshop_base
+    networks:
+      - docker-workshop-net
+    volumes:
+      - ./data:/var/lib/redis
+  goapp:
+    build:
+      context: goapp/.
+    depends_on:
+      - redis
+    networks:
+      - docker-workshop-net
+    environment:
+      - REDIS_URL=redis:6379
+      - REDIS_PASSOWRD=thisissupersecret
+  pythonapp:
+    build:
+      context: pythonapp/.
+    depends_on:
+      - redis
+    networks:
+      - docker-workshop-net
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSOWRD=thisissupersecret
+    ports:
+      - 8000:8000
